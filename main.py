@@ -1,5 +1,4 @@
 import openpyxl
-import pprint
 import string
 from flask import Flask, render_template, request
 from flask import send_file, redirect, url_for, session
@@ -59,7 +58,6 @@ def uploadfile():
                    secure_filename(f.filename)))
             process_file(f.filename)
             session['my_filename'] = f.filename
-            # return 'file uploaded successfully, now processing
             return redirect(url_for('download'))
         else:
             return 'The file extension is not allowed'
@@ -75,6 +73,7 @@ def process_file(file):
     wb = openpyxl.load_workbook(inputfile)
     sheet = wb.active
 
+    # Get input spreadsheet into a list
     input_list = []
     for i, row in enumerate(sheet.iter_rows(values_only=True)):
         if i == 0:
@@ -89,8 +88,7 @@ def process_file(file):
             li.append(xflo(row[5]))
             input_list.append(li[:])
 
-    # pprint.pprint(input_list)
-
+    # Create the full column list including empty columns for export
     output_list = []
     for rows in input_list:
         debet = rows[2]
@@ -110,24 +108,21 @@ def process_file(file):
         o.append(debet - credit)
         output_list.append(o)
 
-    # print("Output list")
-    # pprint.pprint(output_list)
-
     exp_workbook = openpyxl.Workbook()
     exp_sheet = exp_workbook.active
     exp_sheet.title = "Eksportfil fra Visma"
 
+    # Set up columns A-L for the spreadsheet
     columns = []
     for idx, let in enumerate(string.ascii_uppercase):
         if idx > 11:
             break
         columns.append(let)
 
+    # Create the new spreadsheet from output_list
     for idx, inner in enumerate(output_list):
         for idy, cell in enumerate(columns):
             exp_sheet[cell+str(idx+1)] = inner[idy]
-            # print("cell and idx: ", cell+str(idx))
-            # print("inner: ", inner[idy])
 
     exp_workbook.save('downloads/go-'+file)
 
