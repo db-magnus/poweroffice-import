@@ -2,7 +2,7 @@ import openpyxl
 import string
 from flask import Flask, render_template, request
 from flask import send_file, redirect, url_for, session
-from werkzeug.utils import secure_filename
+import re
 import os
 
 allowed_extensions = ['xlsx', 'XLSX']
@@ -39,6 +39,11 @@ def xflo(s):
         return float(s)
 
 
+# regexp to clean unsafe strings
+def clean_url(s):
+    return(re.sub(r"[/\\?%*:|\"<>\x7F\x00-\x1F]", "-", s))
+
+
 def check_file_extension(filename):
     return filename.split('.')[-1] in allowed_extensions
 
@@ -53,9 +58,10 @@ def upload_file():
 def uploadfile():
     if request.method == 'POST':
         f = request.files['file']
+        f.filename = clean_url(f.filename)
         if check_file_extension(f.filename):
             f.save(os.path.join(app.config['UPLOAD_FOLDER'],
-                   secure_filename(f.filename)))
+                   f.filename))
             process_file(f.filename)
             session['my_filename'] = f.filename
             return redirect(url_for('download'))
