@@ -1,14 +1,14 @@
 import openpyxl
-import string
 from flask import Flask, render_template, request
 from flask import send_file, redirect, url_for, session
 import re
 import os
+import csv
 
 allowed_extensions = ['xlsx', 'XLSX']
 upload_folder = "uploads/"
 download_folder = "downloads/"
-salarydate = 27052022
+salarydate = 30042022
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = upload_folder
@@ -48,6 +48,13 @@ def check_file_extension(filename):
     return filename.split('.')[-1] in allowed_extensions
 
 
+def check_positive(s):
+    if s > 0:
+        return("")
+    else:
+        return("-")
+
+
 # Start point for application
 @app.route('/')
 def upload_file():
@@ -63,7 +70,7 @@ def uploadfile():
             f.save(os.path.join(app.config['UPLOAD_FOLDER'],
                    f.filename))
             process_file(f.filename)
-            session['my_filename'] = f.filename
+            session['my_filename'] = f.filename[:-4]+"HLT"
             return redirect(url_for('download'))
         else:
             return 'The file extension is not allowed'
@@ -100,37 +107,24 @@ def process_file(file):
         debet = rows[2]
         credit = rows[3]
         o = []
-        o.append(rows[0][:4])  # kontonr
-        o.append(rows[1][:2])  # avdeling
-        o.append(0)  # ukjent kolonne
-        o.append(0)  # ukjent kolonne
-        o.append('')  # tom
-        o.append('')  # tom
-        o.append(salarydate)  # dato
+        o.append(rows[0][:4].zfill(7))  # kontonr
+        o.append((rows[1][:2] or "0").zfill(7))  # avdeling
+        o.append("00000000")  # ukjent kolonne
+        o.append("00000000")  # ukjent kolonne
+        o.append("        ")  # tom
         o.append('')  # tom
         o.append(salarydate)  # dato
-        o.append(debet)  # debet
-        o.append(0)  # ukjent kolonne
-        o.append(debet - credit)
+        o.append("   ")  # filler
+        o.append(salarydate)  # dato
+        o.append("0000000000")  # antall
+        o.append("0000000000")  # sats
+        o.append(str(round((debet - credit)*100)).zfill(10))  # beløp
         output_list.append(o)
 
-    exp_workbook = openpyxl.Workbook()
-    exp_sheet = exp_workbook.active
-    exp_sheet.title = "Eksportfil fra Visma"
-
-    # Set up columns A-L for the spreadsheet
-    columns = []
-    for idx, let in enumerate(string.ascii_uppercase):
-        if idx > 11:
-            break
-        columns.append(let)
-
-    # Create the new spreadsheet from output_list
-    for idx, inner in enumerate(output_list):
-        for idy, cell in enumerate(columns):
-            exp_sheet[cell+str(idx+1)] = inner[idy]
-
-    exp_workbook.save('downloads/go-'+file)
+    with open('downloads/go-'+file[:-4]
+              + "HLT", 'w', newline="\r\n") as outfile:
+        writer = csv.writer(outfile, delimiter=";")
+        writer.writerows(output_list)
 
 
 if __name__ == '__main__':
