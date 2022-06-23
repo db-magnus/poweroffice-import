@@ -4,6 +4,7 @@ from flask import send_file, redirect, url_for, session
 import re
 import os
 import csv
+import datetime
 
 allowed_extensions = ['xlsx', 'XLSX']
 upload_folder = "uploads/"
@@ -55,6 +56,14 @@ def check_positive(s):
         return("-")
 
 
+def validate_date(s):
+    try:
+        datetime.datetime.strptime(s, '%d%m%Y')
+        return s
+    except ValueError:
+        raise ValueError("Feil datoformat, skal være DDMMYYYY, 28052022")
+
+
 # Start point for application
 @app.route('/')
 def upload_file():
@@ -64,6 +73,7 @@ def upload_file():
 @app.route('/upload', methods=['GET', 'POST'])
 def uploadfile():
     if request.method == 'POST':
+        session['salarydate'] = validate_date(request.form['in_salarydate'])
         f = request.files['file']
         f.filename = clean_url(f.filename)
         if check_file_extension(f.filename):
@@ -73,7 +83,7 @@ def uploadfile():
             session['my_filename'] = f.filename[:-4]+"HLT"
             return redirect(url_for('download'))
         else:
-            return 'The file extension is not allowed'
+            return 'Sjekk at det ble lagt ved fil i xlsx format'
 
 
 @app.route('/download')
@@ -113,9 +123,9 @@ def process_file(file):
         o.append("00000000")  # ukjent kolonne
         o.append("        ")  # tom
         o.append('')  # tom
-        o.append(salarydate)  # dato
+        o.append(session['salarydate'])  # dato
         o.append("   ")  # filler
-        o.append(salarydate)  # dato
+        o.append(session['salarydate'])  # dato
         o.append("0000000000")  # antall
         o.append("0000000000")  # sats
         o.append(str(round((debet - credit)*100)).zfill(10))  # beløp
