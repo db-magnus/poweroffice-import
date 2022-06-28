@@ -15,7 +15,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = upload_folder
 app.config['DOWNLOAD_FOLDER'] = download_folder
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
-app.secret_key = "laskdfj alsdkfj lskdf"
+app.secret_key = "laskdf    j alsdkfj lskdf"
 
 
 if not os.path.exists(upload_folder):
@@ -47,13 +47,6 @@ def clean_url(s):
 
 def check_file_extension(filename):
     return filename.split('.')[-1] in allowed_extensions
-
-
-def check_positive(s):
-    if s > 0:
-        return("")
-    else:
-        return("-")
 
 
 def validate_date(s):
