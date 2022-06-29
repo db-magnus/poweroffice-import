@@ -10,6 +10,7 @@ allowed_extensions = ['xlsx', 'XLSX']
 upload_folder = "uploads/"
 download_folder = "downloads/"
 salarydate = 30042022
+output_list = []
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = upload_folder
@@ -55,6 +56,23 @@ def validate_date(s):
         return s
     except ValueError:
         raise ValueError("Feil datoformat, skal være DDMMYYYY, 28052022")
+
+
+def build_output(i_konto, i_avd, i_date, i_sum):
+    o = []
+    o.append(i_konto)  # kontonr
+    o.append(i_avd)  # avdeling
+    o.append("00000000")  # ukjent kolonne
+    o.append("00000000")  # ukjent kolonne
+    o.append("        ")  # tom
+    o.append('')  # tom
+    o.append(i_date)  # dato
+    o.append("   ")  # filler
+    o.append(i_date)  # dato
+    o.append("0000000000")  # antall
+    o.append("0000000000")  # sats
+    o.append(i_sum)  # beløp
+    output_list.append(o)
 
 
 # Start point for application
@@ -105,24 +123,21 @@ def process_file(file):
             input_list.append(li[:])
 
     # Create the full column list including empty columns for export
-    output_list = []
     for rows in input_list:
         debet = rows[2]
         credit = rows[3]
-        o = []
-        o.append(rows[0][:4].zfill(7))  # kontonr
-        o.append((rows[1][:2] or "0").zfill(7))  # avdeling
-        o.append("00000000")  # ukjent kolonne
-        o.append("00000000")  # ukjent kolonne
-        o.append("        ")  # tom
-        o.append('')  # tom
-        o.append(session['salarydate'])  # dato
-        o.append("   ")  # filler
-        o.append(session['salarydate'])  # dato
-        o.append("0000000000")  # antall
-        o.append("0000000000")  # sats
-        o.append(str(round((debet - credit)*100)).zfill(10))  # beløp
-        output_list.append(o)
+        kontonr = (rows[0][:4].zfill(7))  # kontonr
+        avd = (rows[1][:2] or "0").zfill(7)  # avdeling
+        debet_credit = str(round((debet - credit)*100)).zfill(10)
+
+        # Make lines with equal credit and debit into two lines
+        if (debet-credit == 0):
+            build_output(kontonr, avd, session['salarydate'],
+                         str(round((debet)*100)).zfill(10))
+            build_output(kontonr, avd, session['salarydate'],
+                         str(round((-credit)*100)).zfill(10))
+        else:
+            build_output(kontonr, avd, session['salarydate'], debet_credit)
 
     with open('downloads/go-'+file[:-4]
               + "HLT", 'w', newline="\r\n") as outfile:
