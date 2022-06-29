@@ -86,13 +86,14 @@ def uploadfile():
     output_list.clear()
     if request.method == 'POST':
         session['salarydate'] = validate_date(request.form['in_salarydate'])
+        session['my_filename'] = clean_url(request.form['in_filename'])+'.HLT'
         f = request.files['file']
         f.filename = clean_url(f.filename)
         if check_file_extension(f.filename):
             f.save(os.path.join(app.config['UPLOAD_FOLDER'],
                    f.filename))
             process_file(f.filename)
-            session['my_filename'] = f.filename[:-4]+"HLT"
+
             return redirect(url_for('download'))
         else:
             return 'Sjekk at det ble lagt ved fil i xlsx format'
@@ -100,7 +101,7 @@ def uploadfile():
 
 @app.route('/download')
 def download():
-    return send_file('downloads/go-'+session['my_filename'])
+    return send_file('downloads/'+session['my_filename'])
 
 
 def process_file(file):
@@ -140,8 +141,8 @@ def process_file(file):
         else:
             build_output(kontonr, avd, session['salarydate'], debet_credit)
 
-    with open('downloads/go-'+file[:-4]
-              + "HLT", 'w', newline="\r\n") as outfile:
+    with open('downloads/'+session['my_filename'],
+              'w', newline="\r\n") as outfile:
         writer = csv.writer(outfile, delimiter=";")
         writer.writerows(output_list)
 
