@@ -5,6 +5,5 @@ This is a small python application made to be hosted in Cloud Run that takes the
 ```
 gcloud auth login
 gcloud config set project projectname
-gcloud run deploy
-
+gcloud run deploy poweroffice-converter --source .
 ```

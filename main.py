@@ -83,6 +83,7 @@ def upload_file():
 
 @app.route('/upload', methods=['GET', 'POST'])
 def uploadfile():
+    output_list.clear()
     if request.method == 'POST':
         session['salarydate'] = validate_date(request.form['in_salarydate'])
         f = request.files['file']
@@ -131,7 +132,7 @@ def process_file(file):
         debet_credit = str(round((debet - credit)*100)).zfill(10)
 
         # Make lines with equal credit and debit into two lines
-        if (debet-credit == 0):
+        if (debet - credit == 0):
             build_output(kontonr, avd, session['salarydate'],
                          str(round((debet)*100)).zfill(10))
             build_output(kontonr, avd, session['salarydate'],
