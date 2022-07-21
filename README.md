@@ -1,5 +1,5 @@
 # Visma Payroll to Poweroffice Go converter
-This is a small python application made to be hosted in Cloud Run that takes the input from Visma Payroll and convertes it to the Huldt&Lillevik format that Poweroffice Go expects.
+This is a small python application made to be hosted in Cloud Run that takes the input from Visma Payroll and converts it to the Huldt&Lillevik format that Poweroffice Go expects.
 
 ## Install
 ```

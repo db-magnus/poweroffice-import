@@ -9,7 +9,6 @@ import datetime
 allowed_extensions = ['xlsx', 'XLSX']
 upload_folder = "uploads/"
 download_folder = "downloads/"
-salarydate = 30042022
 output_list = []
 
 app = Flask(__name__)
