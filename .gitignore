@@ -3,3 +3,4 @@ downloads
 uploads
 *.csv
 *.xlsx
+.venv/

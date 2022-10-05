@@ -108,6 +108,8 @@ def process_file(file):
     wb = openpyxl.load_workbook(inputfile)
     sheet = wb.active
 
+    if(sheet['C1'].value.startswith('Lønn')):
+        sheet.insert_cols(3)
     # Get input spreadsheet into a list
     input_list = []
     for i, row in enumerate(sheet.iter_rows(values_only=True)):
